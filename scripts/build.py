@@ -97,13 +97,21 @@ def run_build():
     with open(root_launcher, "w", encoding="ascii") as f:
         f.write("@echo off\r\nstart \"\" \"%~dp0dist\\AntigravityToolbox\\AntigravityToolbox.exe\"\r\n")
 
+    # 6. 自动将绿色便携目录压缩为可直接上传 GitHub Releases 的 zip 包
+    zip_path = os.path.join(DIST_DIR, "AntigravityToolbox-v2.0.0-windows-x64")
+    print(f">> 正在生成发布压缩包: {zip_path}.zip ...")
+    final_zip = shutil.make_archive(zip_path, 'zip', root_dir=DIST_DIR, base_dir='AntigravityToolbox')
+    zip_size_mb = round(os.path.getsize(final_zip) / (1024 * 1024), 2)
+
     exe_file = os.path.join(TARGET_DIR, "AntigravityToolbox.exe")
     print("=" * 60)
     print(">> [SUCCESS] 打包构建圆满完成！")
-    print(f">> 独立主程序: {exe_file}")
-    print(f">> 资源目录:   {target_res}")
-    print(">> 特性说明:   完全免 Python 环境独立运行，瞬间秒开 (<0.5s)，资源随 EXE 存放。")
+    print(f">> 独立主程序目录: {TARGET_DIR}")
+    print(f">> 资源目录:       {target_res}")
+    print(f">> GitHub 发布包:  {final_zip} ({zip_size_mb} MB)")
+    print(">> 特性说明:       完全免 Python 环境独立运行，瞬间秒开 (<0.5s)，资源随 EXE 存放。")
     print("=" * 60)
+
 
 
 if __name__ == "__main__":
