@@ -29,8 +29,8 @@ QMainWindow {
 #SideBar {
     background-color: #ffffff;
     border-right: 1px solid #e2e8f0;
-    min-width: 215px;
-    max-width: 235px;
+    min-width: 220px;
+    max-width: 240px;
 }
 
 #AppBrandFrame {

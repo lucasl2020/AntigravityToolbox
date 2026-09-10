@@ -103,12 +103,16 @@ def get_listening_proxy_ports():
 
 
 def get_antigravity_processes():
-    """检索正在运行的 Antigravity 客户端及语言服务进程"""
+    """精确检索正在运行的 Antigravity 客户端主程序进程（排除工具箱自身与无关语言服务）"""
     procs = []
     try:
         for p in psutil.process_iter(['pid', 'name', 'memory_info']):
             name = (p.info['name'] or '').lower()
-            if 'antigravity' in name or 'language_server' in name:
+            # 排除工具箱自身进程
+            if 'antigravitytoolbox' in name or 'toolbox' in name:
+                continue
+            # 仅精确匹配 Antigravity 客户端
+            if name in ('antigravity.exe', 'antigravity'):
                 mem_mb = round(p.info['memory_info'].rss / (1024 * 1024), 1) if p.info.get('memory_info') else 0
                 procs.append({
                     "pid": p.info['pid'],
@@ -210,7 +214,9 @@ def test_single_endpoint(target, proxy_url=None, timeout=6):
 
     start = time.perf_counter()
     try:
-        resp = requests.get(target["url"], proxies=proxies, timeout=timeout, allow_redirects=False)
+        # 对 accounts 等网页端点跟随重定向，以直接获取最终 200 结果
+        allow_redirect = target.get("id") in ["accounts", "portal", "gemini_web"]
+        resp = requests.get(target["url"], proxies=proxies, timeout=timeout, allow_redirects=allow_redirect)
         elapsed_ms = int((time.perf_counter() - start) * 1000)
         code = resp.status_code
         ok = code in [200, 204, 301, 302, 307, 308, 400, 401, 403, 404]

@@ -107,11 +107,17 @@ class MainWindow(QMainWindow):
 
         # 侧边栏底部客户端状态提示
         status_box = QFrame()
-        status_box.setStyleSheet("background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin: 0 12px; padding: 6px 10px;")
+        status_box.setStyleSheet("background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin: 0 10px 8px 10px; padding: 7px 10px;")
         sbox_layout = QVBoxLayout(status_box)
         sbox_layout.setContentsMargins(0, 0, 0, 0)
-        self.lbl_proc_status = QLabel("⚪ 检测客户端状态...")
-        self.lbl_proc_status.setStyleSheet("color: #64748b; font-size: 11px; font-weight: 500;")
+        sbox_layout.setSpacing(3)
+
+        lbl_box_title = QLabel("💻 客户端本地状态")
+        lbl_box_title.setStyleSheet("color: #64748b; font-size: 10px; font-weight: 600;")
+        sbox_layout.addWidget(lbl_box_title)
+
+        self.lbl_proc_status = QLabel("⚪ 检测中...")
+        self.lbl_proc_status.setStyleSheet("color: #94a3b8; font-size: 11px; font-weight: 500;")
         sbox_layout.addWidget(self.lbl_proc_status)
         sb_layout.addWidget(status_box)
 
@@ -203,11 +209,15 @@ class MainWindow(QMainWindow):
         try:
             procs = get_antigravity_processes()
             if procs:
-                self.lbl_proc_status.setText(f"🟢 Antigravity 运行中 ({len(procs)} 进程)")
+                pids = [str(p["pid"]) for p in procs]
+                pids_str = ", ".join(pids[:5]) + ("..." if len(pids) > 5 else "")
+                self.lbl_proc_status.setText(f"🟢 已启动 ({len(procs)}进程)")
                 self.lbl_proc_status.setStyleSheet("color: #16a34a; font-size: 11px; font-weight: 600;")
+                self.lbl_proc_status.setToolTip(f"Antigravity 客户端正在运行\n检测到 {len(procs)} 个活跃进程\nPID: {pids_str}")
             else:
-                self.lbl_proc_status.setText("⚪ Antigravity 未运行")
+                self.lbl_proc_status.setText("⚪ 未启动")
                 self.lbl_proc_status.setStyleSheet("color: #94a3b8; font-size: 11px;")
+                self.lbl_proc_status.setToolTip("未检测到运行中的 Antigravity 客户端进程")
         except Exception:
             pass
 

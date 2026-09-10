@@ -148,7 +148,7 @@ class TabDetector(QWidget):
 
         self.table = QTableWidget()
         self.table.setColumnCount(5)
-        self.table.setHorizontalHeaderLabels(["服务通道", "目标地址", "连通状态", "响应时延", "HTTP 状态码"])
+        self.table.setHorizontalHeaderLabels(["服务通道", "目标地址", "连通状态", "响应时延", "HTTP 状态"])
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
@@ -158,6 +158,12 @@ class TabDetector(QWidget):
         self.table.verticalHeader().setVisible(False)
         self.table.setMinimumHeight(170)
         tc_layout.addWidget(self.table)
+
+        # 友好技术提示条，消除用户对 404 等网关状态码的疑惑
+        lbl_hint = QLabel("💡 为什么 API 网关显示 404？这类接口（generativelanguage、oauth2 等）为纯后端服务，只接收具体的 API 方法调用（如 AI 聊天），根路径不提供网页故 Google 官方统一返回 404。能收到 Google 服务器亲手签发的 404，恰恰 100% 证明网络已穿透代理直连海外，完全可以正常使用！")
+        lbl_hint.setStyleSheet("color: #475569; font-size: 11px; margin-top: 5px; padding: 4px 6px; background: #f1f5f9; border-radius: 4px;")
+        lbl_hint.setWordWrap(True)
+        tc_layout.addWidget(lbl_hint)
 
         layout.addWidget(table_card, 1)
 
@@ -284,7 +290,36 @@ class TabDetector(QWidget):
                         lat_item.setForeground(QColor("#b91c1c"))
                     self.table.setItem(row, 3, lat_item)
 
-                    code_item = QTableWidgetItem(str(res["code"]) if res["code"] else "Err")
+                    # 格式化 HTTP 状态码与友好技术说明
+                    code = res["code"]
+                    if code == 200:
+                        code_str = "200 (OK)"
+                        code_color = QColor("#15803d")
+                        code_tip = "HTTP 200 成功：服务通信正常。"
+                    elif code in (301, 302, 307, 308):
+                        code_str = f"{code} (重定向)"
+                        code_color = QColor("#0284c7")
+                        code_tip = f"HTTP {code} 重定向：已成功触达 Google 认证中心。"
+                    elif code == 404:
+                        code_str = "404 (网关存活)"
+                        code_color = QColor("#15803d")
+                        code_tip = "HTTP 404 正常：Google 核心 API 网关已正常响应。\n根路径不提供前端页面故返回 404，属于 Google 官方规范，证明网络穿透与直连完全畅通。"
+                    elif code in (401, 403):
+                        code_str = f"{code} (需鉴权)"
+                        code_color = QColor("#15803d")
+                        code_tip = f"HTTP {code} 正常：API 网关连通，需要调用者提供有效 Token/API Key。"
+                    elif res["success"]:
+                        code_str = f"{code} (正常)"
+                        code_color = QColor("#15803d")
+                        code_tip = f"HTTP {code} 正常连通"
+                    else:
+                        code_str = "超时/阻断" if code == 0 else f"{code} (异常)"
+                        code_color = QColor("#b91c1c")
+                        code_tip = f"连接失败: {res.get('error', '未知错误')}"
+
+                    code_item = QTableWidgetItem(code_str)
+                    code_item.setForeground(code_color)
+                    code_item.setToolTip(code_tip)
                     self.table.setItem(row, 4, code_item)
                     break
             self.log(f"端点测试: {res['name']} -> {'通过' if res['success'] else '失败'} ({res['latency_ms']}ms)")
