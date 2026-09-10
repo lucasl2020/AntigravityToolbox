@@ -1,0 +1,22 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyInstaller build artifacts
+build/
+*.spec
+
+# Distribution / packaging (uncomment if you release binaries via GitHub Releases instead of git commit)
+dist/
+
+# Logs and databases
+*.log
+
+# Environment and IDE
+.env
+.venv
+env/
+venv/
+.idea/
+.vscode/
